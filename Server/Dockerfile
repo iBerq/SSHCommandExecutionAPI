@@ -1,6 +1,7 @@
 FROM ubuntu:22.04
 ENV USER server
 RUN apt-get update
+RUN echo 'root:root123@' | chpasswd
 
 #Install ssh
 RUN apt-get install -y netcat ssh iputils-ping
@@ -49,6 +50,15 @@ RUN rm index.html
 
 WORKDIR "/"
 
+#Install mysql
+RUN echo "y" | apt-get install mysql-server
+
+#Setup mysql
+RUN service mysql restart && echo "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password by 'root123@';" | mysql -u root -p
+ADD mysql_secure_installation.sh /root/mysql_secure_installation.sh
+RUN chmod +x /root/mysql_secure_installation.sh
+RUN ./root/mysql_secure_installation.sh 'root123@' 'root123@'
+
 #Add the files to server
 ADD apache2.conf /etc/apache2/apache2.conf
 ADD .htaccess /var/www/html/.htaccess
@@ -60,4 +70,4 @@ ADD machines.php /var/www/html/machines.php
 RUN a2enmod rewrite
 
 EXPOSE 22
-ENTRYPOINT service ssh restart && service apache2 restart && bash
+ENTRYPOINT service ssh restart && service apache2 restart && service mysql restart && bash
