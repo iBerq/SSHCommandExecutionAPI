@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:latest
 ENV USER client
 RUN apt-get update
 RUN apt-get install -y netcat ssh iputils-ping

@@ -1,102 +1,316 @@
 <?php
-    /* ini_set('display_errors', 1);
-    ini_set('display_startup_errors', 1);
-    error_reporting(E_ALL); */
-    use Psr\Http\Message\ResponseInterface as Response;
-    use Psr\Http\Message\ServerRequestInterface as Request;
-    use Selective\BasePath\BasePathMiddleware;
-    use Slim\Factory\AppFactory;
-    include "exec.php";
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-    require_once __DIR__ . '/vendor/autoload.php';
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Selective\BasePath\BasePathMiddleware;
+use Slim\Factory\AppFactory;
 
-    $app = AppFactory::create();
+include "exec.php";
+include "database.php";
 
-    // Add Slim routing middleware
-    $app->addRoutingMiddleware();
+require_once __DIR__ . '/vendor/autoload.php';
 
-    // Set the base path to run the app in a subdirectory.
-    // This path is used in urlFor().
-    $app->add(new BasePathMiddleware($app));
+$app = AppFactory::create();
 
-    $app->addErrorMiddleware(true, true, true);
+// Add Slim routing middleware
+$app->addRoutingMiddleware();
 
-    // Define app routes
-    $app->get('/', function (Request $request, Response $response) {
-        $response->getBody()->write('Hello, World!');
-        return $response;
-    })->setName('root');
+// Set the base path to run the app in a subdirectory.
+// This path is used in urlFor().
+$app->add(new BasePathMiddleware($app));
 
-    $app->get('/test', function (Request $request, Response $response) {
-        $response->getBody()->write('Hello, World!');
-        return $response;
-    });
-    
-    $app->post('/command/exec', function (Request $request, Response $response, $args) {
-        $params = (array)$request->getParsedBody();
-        $payload = array();
-        if (!isset($params["command"])){
-            $payload["message"] = "No command is given.";
-            $response->getBody()->write(json_encode($payload));
-            return $response->withHeader('Content-Type', 'application/json');
-        }
+$app->addErrorMiddleware(true, true, true);
+
+// Define app routes
+$app->get('/', function (Request $request, Response $response) {
+    $response->getBody()->write('Hello, World!');
+    return $response;
+})->setName('root');
+
+$app->get('/test', function (Request $request, Response $response) {
+    $response->getBody()->write('Hello, World!');
+    return $response;
+});
+
+######################################################################################################################
+/*
+        COMMAND
+    */
+######################################################################################################################
+
+$app->post('/command/exec', function (Request $request, Response $response) {
+    $params = (array)$request->getParsedBody();
+    $payload = array();
+    if (!isset($params["command"])) {
+        $payload["message"] = "No command is given.";
+    } else {
         $payload["command"] = $params["command"];
-        include "machines.php";
+        $machines = select(array("machine_name"), "machines");
         $machine_result_array = array();
-        foreach($machines as $machine){
-            $machine_result = array("result" => "fail", "machine" => $machine);
+        foreach ($machines as $temp_machine) {
+            $machine = get_object_vars($temp_machine);
+            $machine_result = array("result" => 0, "machine_name" => $machine["machine_name"]);
             $output = "";
             $error = "";
-            if (!executeCmdOnSSH($machine, $params["command"], $output, $error))
+            if (!executeCmdOnSSH($machine["machine_name"], $params["command"], $output, $error))
                 $machine_result["message"] = $error;
             else {
                 if ($error == "")
-                    $machine_result["result"] = "success";
+                    $machine_result["result"] = 1;
                 else
                     $machine_result["message"] = $error;
                 $machine_result["output"] = $output;
             }
-            array_push($machine_result_array,$machine_result);
+
+            $query_params = array(
+                "machine_name" => $machine_result["machine_name"],
+                "command" => $params["command"],
+                "result" => $machine_result["result"],
+                "output" => isset($machine_result["output"]) ? $machine_result["output"] : "",
+                "message" => isset($machine_result["message"]) ? $machine_result["message"] : "",
+            );
+
+            $id = insert("command_history", $query_params);
+
+            array_push($machine_result_array, select_where(array("*"), "command_history", array("id" => $id)));
         }
         $payload["machine_results"] = $machine_result_array;
+    }
 
+    $response->getBody()->write(json_encode($payload));
+    return $response->withHeader('Content-Type', 'application/json');
+});
+
+$app->post('/command/exec/{machine_name}', function (Request $request, Response $response, $args) {
+    $params = (array)$request->getParsedBody();
+    $payload = array("result" => 0, "machine_name" => $args["machine_name"]);
+    if (!isset($params["command"])) {
+        $payload["message"] = "No command is given.";
         $response->getBody()->write(json_encode($payload));
         return $response->withHeader('Content-Type', 'application/json');
-    });
-    
-    $app->post('/command/exec/{machine}', function (Request $request, Response $response, $args) {
-        $params = (array)$request->getParsedBody();
-        $payload = array("result" => "fail", "machine" => $args["machine"]);
-        if (!isset($params["command"])){
-            $payload["message"] = "No command is given.";
-            $response->getBody()->write(json_encode($payload));
-            return $response->withHeader('Content-Type', 'application/json');
-        }
+    }
+
+    if (!select_where(array("*"), "machines", array("machine_name" => $args["machine_name"]))) {
         $payload["command"] = $params["command"];
-        include "machines.php";
-        if (!in_array($args["machine"], $machines)){
-            $payload["message"] = "Machine not found.";
-            $response->getBody()->write(json_encode($payload));
-            return $response->withHeader('Content-Type', 'application/json');
-        }
-
-        $output = "";
-        $error = "";
-        if (!executeCmdOnSSH($args["machine"], $params["command"], $output, $error))
-            $payload["message"] = $error;
-        else {
-            if ($error == "")
-                $payload["result"] = "success";
-            else
-                $payload["message"] = $error;
-            $payload["output"] = $output;
-        }
-
+        $payload["message"] = "Machine not found.";
         $response->getBody()->write(json_encode($payload));
         return $response->withHeader('Content-Type', 'application/json');
-    });
+    }
+    unset($payload["machine_name"]);
 
-    // Run app
-    $app->run();
-?> 
+    $output = "";
+    $error = "";
+    if (!executeCmdOnSSH($args["machine_name"], $params["command"], $output, $error))
+        $command["message"] = $error;
+    else {
+        if ($error == "")
+            $payload["result"] = 1;
+        else
+            $command["message"] = $error;
+        $command["output"] = $output;
+    }
 
+    $query_params = array(
+        "machine_name" => $args["machine_name"],
+        "command" => $params["command"],
+        "result" => $payload["result"],
+        "output" => isset($command["output"]) ? $command["output"] : "",
+        "message" => isset($command["message"]) ? $command["message"] : "",
+    );
+
+    $id = insert("command_history", $query_params);
+
+    $payload["command"] = select_where(array("*"), "command_history", array("id" => $id));
+
+    $response->getBody()->write(json_encode($payload));
+    return $response->withHeader('Content-Type', 'application/json');
+});
+
+$app->get('/command/history', function (Response $response) {
+    $payload = array();
+    $machines = select(array("*"), "machines");
+    $machine_result_array = array();
+    foreach ($machines as $temp_machine) {
+        $machine = get_object_vars($temp_machine);
+        $machine_result_array[$machine["machine_name"]] = select_where(array("*"), "command_history", array("machine_name" => $machine["machine_name"]));
+    }
+    $payload["history"] = $machine_result_array;
+    $response->getBody()->write(json_encode($payload));
+    return $response->withHeader('Content-Type', 'application/json');
+});
+
+$app->get('/command/history/{machine_name}', function (Response $response, $args) {
+    $payload = array("result" => 0, "machine_name" => $args["machine_name"]);
+    if (!($payload["history"] = select_where(array("*"), "command_history", array("machine_name" => $args["machine_name"])))) {
+        unset($payload["history"]);
+        $payload["message"] = "Machine not found.";
+    } else
+        $payload["result"] = 1;
+    $response->getBody()->write(json_encode($payload));
+    return $response->withHeader('Content-Type', 'application/json');
+});
+
+######################################################################################################################
+/*
+        MACHINE
+    */
+######################################################################################################################
+
+$app->post('/machine/add', function (Request $request, Response $response) {
+    $params = (array)$request->getParsedBody();
+    $payload = array("result" => 0);
+    if (!isset($params["machine_name"])) {
+        $payload["message"] = "No machine name is given.";
+        $response->getBody()->write(json_encode($payload));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    if ($payload["machine"] = select_where(array("*"), "machines", array("machine_name" => $params["machine_name"]))) {
+        $payload["message"] = "Machine already exists.";
+        $response->getBody()->write(json_encode($payload));
+        return $response->withHeader('Content-Type', 'application/json');
+    } else
+        unset($payload["machine"]);
+
+    $query_params = array(
+        "machine_name" => $params["machine_name"],
+    );
+
+    insert("machines", $query_params);
+    $payload["machine"] = select_where(array("*"), "machines", array("machine_name" => $params["machine_name"]));
+    $payload["result"] = 1;
+
+    $response->getBody()->write(json_encode($payload));
+    return $response->withHeader('Content-Type', 'application/json');
+});
+
+$app->get('/machine/list', function (Response $response) {
+    $payload = array("result" => 1);
+
+    $machines = select(array("*"), "machines");
+    $machine_result_array = array();
+    foreach ($machines as $machine) {
+        array_push($machine_result_array, get_object_vars($machine));
+    }
+    $payload["machines"] = $machine_result_array;
+
+    $response->getBody()->write(json_encode($payload));
+    return $response->withHeader('Content-Type', 'application/json');
+});
+
+$app->post('/machine/delete', function (Request $request, Response $response) {
+    $params = (array)$request->getParsedBody();
+    $payload = array("result" => 0);
+    if (!isset($params["machine_name"])) {
+        $payload["message"] = "No machine name is given.";
+        $response->getBody()->write(json_encode($payload));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    if (!($payload["machine"] = select_where(array("*"), "machines", array("machine_name" => $params["machine_name"])))) {
+        unset($payload["machine"]);
+        $payload["machine"] = $params["machine_name"];
+        $payload["message"] = "Machine doesn't exists.";
+        $response->getBody()->write(json_encode($payload));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    $query_params = array(
+        "machine_name" => $params["machine_name"],
+    );
+
+    delete("machines", $query_params);
+    $payload["result"] = 1;
+
+    $response->getBody()->write(json_encode($payload));
+    return $response->withHeader('Content-Type', 'application/json');
+});
+
+######################################################################################################################
+/*
+        CRON
+    */
+######################################################################################################################
+
+$app->post('/cron/add', function (Request $request, Response $response) {
+    $params = (array)$request->getParsedBody();
+    $payload = array("result" => 0);
+    if (!isset($params["job"])) {
+        $payload["message"] = "No job is given.";
+        $response->getBody()->write(json_encode($payload));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    if (!isset($params["machine"])) {
+        $payload["message"] = "No machine is given.";
+        $response->getBody()->write(json_encode($payload));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    if ($payload["cron_job"] = select_where(array("*"), "cron_jobs", array("job" => $params["job"], "machine" => $params["machine"]))) {
+        $payload["message"] = "Cron already exists.";
+        $response->getBody()->write(json_encode($payload));
+        return $response->withHeader('Content-Type', 'application/json');
+    } else
+        unset($payload["cron_job"]);
+
+    $query_params = array(
+        "job" => $params["job"],
+        "machine" => $params["machine"],
+    );
+
+    //$crontab = file_put_contents('/var/spool/cron/crontabs/', $txt.PHP_EOL , FILE_APPEND | LOCK_EX);
+    $cron_id = insert("cron_jobs", $query_params);
+    $payload["cron_job"] = select_where(array("*"), "cron_jobs", array("cron_id" => $cron_id));
+    $payload["result"] = 1;
+
+    $response->getBody()->write(json_encode($payload));
+    return $response->withHeader('Content-Type', 'application/json');
+});
+
+$app->get('/cron/list', function (Response $response) {
+    $payload = array("result" => 1);
+
+    $cron_jobs = select(array("*"), "cron_jobs");
+    $cron_result_array = array();
+    foreach ($cron_jobs as $cron) {
+        array_push($cron_result_array, get_object_vars($cron));
+    }
+    $payload["cron_jobs"] = $cron_result_array;
+    $response->getBody()->write(json_encode($payload));
+    return $response->withHeader('Content-Type', 'application/json');
+});
+
+$app->post('/cron/delete', function (Request $request, Response $response) {
+    $params = (array)$request->getParsedBody();
+    $payload = array("result" => 0);
+    if (!isset($params["cron_id"])) {
+        $payload["message"] = "No cron job id is given.";
+        $response->getBody()->write(json_encode($payload));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    if (!($payload["cron_job"] = select_where(array("*"), "cron_jobs", array("cron_id" => $params["cron_id"])))) {
+        unset($payload["cron_job"]);
+        $payload["cron_id"] = $params["cron_id"];
+        $payload["message"] = "Cron job doesn't exists.";
+        $response->getBody()->write(json_encode($payload));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    $query_params = array(
+        "cron_id" => $params["cron_id"],
+    );
+
+    delete("cron_jobs", $query_params);
+    $payload["result"] = 1;
+
+    $response->getBody()->write(json_encode($payload));
+    return $response->withHeader('Content-Type', 'application/json');
+});
+
+// Run app
+$app->run();
