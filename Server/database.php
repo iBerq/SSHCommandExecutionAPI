@@ -29,7 +29,7 @@ function insert($table, $params)
     $conn = null;
     return $id;
 }
-function update($table, $params)
+function update($table, $params, $id)
 {
     $conn = db_connection();
     $sql = "UPDATE $table SET ";
@@ -37,9 +37,14 @@ function update($table, $params)
         $sql .= $key . "=:$key,";
     }
     $sql = substr($sql, 0, -1);
-    $sql .= " WHERE id=:id";
+    foreach ($id as $key => $value) {
+        $sql .= " WHERE $key=:$key";
+    }
     $stmt = $conn->prepare($sql);
     foreach ($params as $key => $value) {
+        $stmt->bindValue(":$key", $value);
+    }
+    foreach ($id as $key => $value) {
         $stmt->bindValue(":$key", $value);
     }
     $stmt->execute();

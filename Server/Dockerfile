@@ -13,6 +13,7 @@ RUN echo "y" | DEBIAN_FRONTEND="noninteractive" apt-get install php
 
 #Install php-ssh2
 RUN apt-get -y install php-ssh2
+RUN echo "y" | apt-get install php-curl
 
 #Create user for ssh connection
 RUN mkdir /var/run/sshd
@@ -23,6 +24,7 @@ RUN echo "$USER:123456" | chpasswd
 
 #Setup the apache server
 RUN service apache2 start
+RUN chown -R www-data:www-data /var/www/html
 
 #Install composer
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
@@ -64,9 +66,9 @@ RUN apt-get install -y nano
 #ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password by 'root123@';
 #CREATE DATABASE ssh_cmd_exec_app;
 #USE ssh_cmd_exec_app;
-#CREATE TABLE `command_history` (`id` INT NOT NULL AUTO_INCREMENT, `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, `machine_name` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,	`command` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,	`result` BOOLEAN NOT NULL, `output` TEXT CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT 'Output of the executed command.', `message` TEXT CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT 'Error message of the executed command.', PRIMARY KEY (`id`));
+#CREATE TABLE `command_history` (`command_id` INT NOT NULL AUTO_INCREMENT, `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, `machine_name` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,	`command` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL, `runned_by` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,	`result` BOOLEAN NOT NULL, `output` TEXT CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT 'Output of the executed command.', `message` TEXT CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT 'Error message of the executed command.', PRIMARY KEY (`command_id`));
 #CREATE TABLE `machines` (`machine_name` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL, PRIMARY KEY (`machine_name`));
-#CREATE TABLE `cron_jobs` (`cron_id` int(11) NOT NULL AUTO_INCREMENT, `job` varchar(255) CHARACTER SET utf8 NOT NULL, `machine` varchar(255) CHARACTER SET utf8 NOT NULL, PRIMARY KEY (`cron_id`));
+#CREATE TABLE `cron_jobs` (`cron_id` int(11) NOT NULL AUTO_INCREMENT, `machine_name` varchar(255) CHARACTER SET utf8 NOT NULL, `schedule` varchar(255) CHARACTER SET utf8 NOT NULL, `command` varchar(255) CHARACTER SET utf8 NOT NULL, `last_runned_command_id` INT DEFAULT NULL COMMENT 'Last runned commands id from command_history.', PRIMARY KEY (`cron_id`));
 
 #Add the files to server
 ADD apache2.conf /etc/apache2/apache2.conf
