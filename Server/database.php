@@ -1,7 +1,7 @@
 <?php
 function db_connection()
 {
-    $db = new PDO("mysql:host=database;dbname=ssh_cmd_exec_app", "root", "root123@");
+    $db = new PDO("mysql:host=database;dbname=ssh_cmd_exec_app", "server", "server123@");
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
     return $db;

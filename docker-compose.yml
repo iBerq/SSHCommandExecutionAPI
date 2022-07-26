@@ -1,0 +1,50 @@
+services:
+  server:
+    container_name: server
+    tty: true
+    build: ./server
+    networks:
+      - ssh_cmd_exec_app_network
+    expose:
+      - 22
+      - 3306
+    ports:
+      - "80:80"
+  database:
+    container_name: database
+    image: mysql/mysql-server:latest
+    environment:
+      - MYSQL_ROOT_PASSWORD=root123@
+      - MYSQL_DATABASE=ssh_cmd_exec_app
+      - MYSQL_USER=server
+      - MYSQL_PASSWORD=server123@
+    volumes:
+      - ssh_cmd_exec_app_database:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - ssh_cmd_exec_app_network
+    ports:
+      - 3306
+  client:
+    container_name: client
+    tty: true
+    build: ./client
+    networks:
+      - ssh_cmd_exec_app_network
+    expose:
+      - 22
+  client2:
+    container_name: client2
+    tty: true
+    build: ./client
+    networks:
+      - ssh_cmd_exec_app_network
+    expose:
+      - 22
+
+networks:
+  ssh_cmd_exec_app_network:
+    driver: bridge
+
+volumes:
+  ssh_cmd_exec_app_database:
