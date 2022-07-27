@@ -27,12 +27,455 @@ $app->addErrorMiddleware(true, true, true);
 
 // Define app routes
 $app->get('/', function (Request $request, Response $response) {
-    $response->getBody()->write('Hello, World!');
+    $response->getBody()->write("<!doctype html>");
+    $response->getBody()->write("<html>");
+
+    $response->getBody()->write("<head>");
+    $response->getBody()->write("<title>SSH Command Execution API</title>");
+    $response->getBody()->write("</head>");
+
+    $response->getBody()->write("<body>");
+    $response->getBody()->write("<h1>SSH Command Execution API</h1>");
+    $response->getBody()->write("<p>SSH Command Execution API allows you to send commands to and get the responses from saved remote machines in an efficiently manner.</p>");
+    $response->getBody()->write("<p>For more information, visit the <a href='/help'>help</a> page.</p>");
+    $response->getBody()->write("</body>");
+
+    $response->getBody()->write("</html>");
     return $response;
 })->setName('root');
 
-$app->get('/test', function (Request $request, Response $response) {
-    $response->getBody()->write('Hello, World!');
+$app->get('/help', function (Request $request, Response $response) {
+    $response->getBody()->write("<!doctype html>");
+    $response->getBody()->write("<html>");
+
+    $response->getBody()->write("<head>");
+    //$response->getBody()->write("<meta http-equiv='refresh' content='0;URL='https://covidtracking.com/data/api'' />");
+    $response->getBody()->write("<title>SSH Command Execution API Help Page</title>");
+    $response->getBody()->write("</head>");
+
+    $response->getBody()->write("<body>");
+    $response->getBody()->write("<h1 style='border-bottom-style: solid; border-width: 5px;'>SSH Command Execution API Help Page</h1>");
+    $response->getBody()->write("<br>");
+    $response->getBody()->write("<div>");
+    $response->getBody()->write("<h2 style='color: gray; border-bottom-style: solid; border-color: gray; border-width: 3px;'>/machines</h2>");
+    $response->getBody()->write("<div>");
+    $response->getBody()->write("<h3 style='color: green; display: inline;'>GET</h3><h3 style='padding-left: 30px; display: inline;'>/machines/list</h3>");
+    $response->getBody()->write("<p>Lists all of the saved machines.</p>");
+    $response->getBody()->write("<h4>Response</h4>");
+    $response->getBody()->write('<pre style="border-style: solid; border-width: 1px; display: inline-block; padding: 10px;"><code>{
+    "status": 1,
+    "machines": [
+        {
+            "machine_name": "client"
+        },
+        {
+            "machine_name": "client2"
+        },
+        {
+            "machine_name": "client3"
+        }
+    ]
+}</code></pre>');
+    $response->getBody()->write("</div>");
+    $response->getBody()->write("<div>");
+    $response->getBody()->write("<h3 style='color: gold; display: inline;'>POST</h3><h3 style='padding-left: 30px; display: inline;'>/machines/add</h3>");
+    $response->getBody()->write("<p>Save specified machine.</p>");
+    $response->getBody()->write("<h4>Body</h4>");
+    $response->getBody()->write("
+    <table style='border: 1px solid black; border-collapse: collapse;'> 
+        <thead>
+            <tr>
+                <th style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>Key</th>
+                <th style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>Value</th>
+                <th style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>machine_name</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>client</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>host name of the machine</td>
+            </tr>
+        </tbody>
+    </table>");
+    $response->getBody()->write("<h4>Response</h4>");
+    $response->getBody()->write('<pre style="border-style: solid; border-width: 1px; display: inline-block; padding: 10px;"><code>{
+    "status": 1,
+    "machine": [
+        {
+            "machine_name": "client"
+        }
+    ]
+}</code></pre>');
+    $response->getBody()->write("</div>");
+    $response->getBody()->write("<div>");
+    $response->getBody()->write("<h3 style='color: gold; display: inline;'>POST</h3><h3 style='padding-left: 30px; display: inline;'>/machines/delete</h3>");
+    $response->getBody()->write("<p>Delete specified machine.</p>");
+    $response->getBody()->write("<h4>Body</h4>");
+    $response->getBody()->write("
+    <table style='border: 1px solid black; border-collapse: collapse;'> 
+        <thead>
+            <tr>
+                <th style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>Key</th>
+                <th style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>Value</th>
+                <th style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>machine_name</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>client</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>host name of the machine</td>
+            </tr>
+        </tbody>
+    </table>");
+    $response->getBody()->write("<h4>Response</h4>");
+    $response->getBody()->write('<pre style="border-style: solid; border-width: 1px; display: inline-block; padding: 10px;"><code>{
+    "status": 1,
+    "machine": [
+        {
+            "machine_name": "client"
+        }
+    ]
+}</code></pre>');
+    $response->getBody()->write("</div>");
+    $response->getBody()->write("</div>");
+    $response->getBody()->write("<div>");
+    $response->getBody()->write("<h2 style='color: gray; border-bottom-style: solid; border-color: gray; border-width: 3px;'>/command</h2>");
+    $response->getBody()->write("<div>");
+    $response->getBody()->write("<h3 style='color: gold; display: inline;'>POST</h3><h3 style='padding-left: 30px; display: inline;'>/command/exec/{machine_name}</h3>");
+    $response->getBody()->write("<p>Execute given command at specified machine.</p>");
+    $response->getBody()->write("<h4>Body</h4>");
+    $response->getBody()->write("
+    <table style='border: 1px solid black; border-collapse: collapse;'> 
+        <thead>
+            <tr>
+                <th style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>Key</th>
+                <th style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>Value</th>
+                <th style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>command</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>date</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>command that will run on the {machine_name}</td>
+            </tr>
+        </tbody>
+    </table>");
+    $response->getBody()->write("<h4>Response</h4>");
+    $response->getBody()->write('<pre style="border-style: solid; border-width: 1px; display: inline-block; padding: 10px;"><code>{
+    "status": 1,
+    "result": [
+        {
+            "id": 1,
+            "date": "2022-07-27 10:31:54",
+            "machine_name": "client",
+            "command": "date",
+            "runned_by": "manual",
+            "status": 1,
+            "output": "Wed Jul 27 10:31:54 UTC 2022\n",
+            "error": ""
+        },
+    ]
+}</code></pre>');
+    $response->getBody()->write("</div>");
+    $response->getBody()->write("<div>");
+    $response->getBody()->write("<h3 style='color: gold; display: inline;'>POST</h3><h3 style='padding-left: 30px; display: inline;'>/command/exec</h3>");
+    $response->getBody()->write("<p>Execute given command at all of the saved machines.</p>");
+    $response->getBody()->write("<h4>Body</h4>");
+    $response->getBody()->write("
+    <table style='border: 1px solid black; border-collapse: collapse;'> 
+        <thead>
+            <tr>
+                <th style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>Key</th>
+                <th style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>Value</th>
+                <th style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>command</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>date</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>command that will run on all saved machines</td>
+            </tr>
+        </tbody>
+    </table>");
+    $response->getBody()->write("<h4>Response</h4>");
+    $response->getBody()->write('<pre style="border-style: solid; border-width: 1px; display: inline-block; padding: 10px;"><code>{
+    "status": 1,
+    "result": [
+        [
+            {
+                "id": 2,
+                "date": "2022-07-27 10:32:08",
+                "machine_name": "client",
+                "command": "date",
+                "runned_by": "manual",
+                "status": 1,
+                "output": "Wed Jul 27 10:32:08 UTC 2022\n",
+                "error": ""
+            }
+        ],
+        [
+            {
+                "id": 3,
+                "date": "2022-07-27 10:32:08",
+                "machine_name": "client2",
+                "command": "date",
+                "runned_by": "manual",
+                "status": 1,
+                "output": "Wed Jul 27 10:32:08 UTC 2022\n",
+                "error": ""
+            }
+        ],
+        [
+            {
+                "id": 4,
+                "date": "2022-07-27 10:32:08",
+                "machine_name": "client3",
+                "command": "date",
+                "runned_by": "manual",
+                "status": 0,
+                "output": "",
+                "error": "Can\'t connect to server."
+            }
+        ]
+    ]
+}</code></pre>');
+    $response->getBody()->write("</div>");
+    $response->getBody()->write("<div>");
+    $response->getBody()->write("<h3 style='color: green; display: inline;'>GET</h3><h3 style='padding-left: 30px; display: inline;'>/command/history/{machine_name}</h3>");
+    $response->getBody()->write("<p>Get command history of the specified machine.</p>");
+    $response->getBody()->write("<h4>Response</h4>");
+    $response->getBody()->write('<pre style="border-style: solid; border-width: 1px; display: inline-block; padding: 10px;"><code>{
+    "status": 1,
+    "machine_name": "client",
+    "history": [
+        {
+            "id": 1,
+            "date": "2022-07-27 10:31:54",
+            "machine_name": "client",
+            "command": "date",
+            "runned_by": "manual",
+            "status": 1,
+            "output": "Wed Jul 27 10:31:54 UTC 2022\n",
+            "error": ""
+        },
+        {
+            "id": 2,
+            "date": "2022-07-27 10:32:08",
+            "machine_name": "client",
+            "command": "date",
+            "runned_by": "manual",
+            "status": 1,
+            "output": "Wed Jul 27 10:32:08 UTC 2022\n",
+            "error": ""
+        }
+    ]
+}</code></pre>');
+    $response->getBody()->write("</div>");
+    $response->getBody()->write("<div>");
+    $response->getBody()->write("<h3 style='color: green; display: inline;'>GET</h3><h3 style='padding-left: 30px; display: inline;'>/command/history</h3>");
+    $response->getBody()->write("<p>Get command history of all saved machines.</p>");
+    $response->getBody()->write("<h4>Response</h4>");
+    $response->getBody()->write('<pre style="border-style: solid; border-width: 1px; display: inline-block; padding: 10px;"><code>{
+    "history": {
+        "client": [
+            {
+                "id": 1,
+                "date": "2022-07-27 10:31:54",
+                "machine_name": "client",
+                "command": "date",
+                "runned_by": "manual",
+                "status": 1,
+                "output": "Wed Jul 27 10:31:54 UTC 2022\n",
+                "error": ""
+            },
+            {
+                "id": 2,
+                "date": "2022-07-27 10:32:08",
+                "machine_name": "client",
+                "command": "date",
+                "runned_by": "manual",
+                "status": 1,
+                "output": "Wed Jul 27 10:32:08 UTC 2022\n",
+                "error": ""
+            }
+        ],
+        "client2": [
+            {
+                "id": 3,
+                "date": "2022-07-27 10:32:08",
+                "machine_name": "client2",
+                "command": "date",
+                "runned_by": "manual",
+                "status": 1,
+                "output": "Wed Jul 27 10:32:08 UTC 2022\n",
+                "error": ""
+            }
+        ],
+        "client3": [
+            {
+                "id": 4,
+                "date": "2022-07-27 10:32:08",
+                "machine_name": "client3",
+                "command": "date",
+                "runned_by": "manual",
+                "status": 0,
+                "output": "",
+                "error": "Can\'t connect to server."
+            }
+        ]
+    }
+}</code></pre>');
+    $response->getBody()->write("</div>");
+    $response->getBody()->write("</div>");
+    $response->getBody()->write("<div>");
+    $response->getBody()->write("<h2 style='color: gray; border-bottom-style: solid; border-color: gray; border-width: 3px;'>/cron</h2>");
+    $response->getBody()->write("<div>");
+    $response->getBody()->write("<h3 style='color: green; display: inline;'>GET</h3><h3 style='padding-left: 30px; display: inline;'>/cron/list</h3>");
+    $response->getBody()->write("<p>Lists all of the active cron jobs.</p>");
+    $response->getBody()->write("<h4>Response</h4>");
+    $response->getBody()->write('<pre style="border-style: solid; border-width: 1px; display: inline-block; padding: 10px;"><code>{
+    "status": 1,
+    "cron_jobs": [
+        {
+            "id": 1,
+            "machine_name": "client",
+            "schedule": "* * * * *",
+            "command": "date",
+            "last_runned_command_id": 13
+        },
+        {
+            "id": 2,
+            "machine_name": "*",
+            "schedule": "* * * * *",
+            "command": "free -m",
+            "last_runned_command_id": 10
+        }
+    ]
+}</code></pre>');
+    $response->getBody()->write("</div>");
+    $response->getBody()->write("<div>");
+    $response->getBody()->write("<h3 style='color: gold; display: inline;'>POST</h3><h3 style='padding-left: 30px; display: inline;'>/cron/add/{machine_name}</h3>");
+    $response->getBody()->write("<p>Save given cron job to the specified machine.</p>");
+    $response->getBody()->write("<h4>Body</h4>");
+    $response->getBody()->write("
+    <table style='border: 1px solid black; border-collapse: collapse;'> 
+        <thead>
+            <tr>
+                <th style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>Key</th>
+                <th style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>Value</th>
+                <th style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>schedule</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>* * * * *</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>schedule of the command that will run</td>
+            </tr>
+            <tr>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>command</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>date</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>command that will run schedular on the {machine_name}</td>
+            </tr>
+        </tbody>
+    </table>");
+    $response->getBody()->write("<h4>Response</h4>");
+    $response->getBody()->write('<pre style="border-style: solid; border-width: 1px; display: inline-block; padding: 10px;"><code>{
+    "status": 1,
+    "cron_job": [
+        {
+            "id": 1,
+            "machine_name": "client",
+            "schedule": "* * * * *",
+            "command": "date",
+            "last_runned_command_id": null
+        }
+    ]
+}</code></pre>');
+    $response->getBody()->write("</div>");
+    $response->getBody()->write("<div>");
+    $response->getBody()->write("<h3 style='color: gold; display: inline;'>POST</h3><h3 style='padding-left: 30px; display: inline;'>/cron/add</h3>");
+    $response->getBody()->write("<p>Save given cron job to all saved machines.</p>");
+    $response->getBody()->write("<h4>Body</h4>");
+    $response->getBody()->write("
+    <table style='border: 1px solid black; border-collapse: collapse;'> 
+        <thead>
+            <tr>
+                <th style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>Key</th>
+                <th style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>Value</th>
+                <th style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>schedule</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>* * * * *</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>schedule of the command that will run</td>
+            </tr>
+            <tr>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>command</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>date</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>command that will run schedular on all saved machines</td>
+            </tr>
+        </tbody>
+    </table>");
+    $response->getBody()->write("<h4>Response</h4>");
+    $response->getBody()->write('<pre style="border-style: solid; border-width: 1px; display: inline-block; padding: 10px;"><code>{
+    "status": 1,
+    "cron_job": [
+        {
+            "id": 2,
+            "machine_name": "*",
+            "schedule": "* * * * *",
+            "command": "free -m",
+            "last_runned_command_id": null
+        }
+    ]
+}</code></pre>');
+    $response->getBody()->write("</div>");
+    $response->getBody()->write("<div>");
+    $response->getBody()->write("<h3 style='color: gold; display: inline;'>POST</h3><h3 style='padding-left: 30px; display: inline;'>/cron/delete</h3>");
+    $response->getBody()->write("<p>Delete specified cron job.</p>");
+    $response->getBody()->write("<h4>Body</h4>");
+    $response->getBody()->write("
+    <table style='border: 1px solid black; border-collapse: collapse;'> 
+        <thead>
+            <tr>
+                <th style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>Key</th>
+                <th style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>Value</th>
+                <th style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>id</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>2</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>unique identifier of the cron job</td>
+            </tr>
+        </tbody>
+    </table>");
+    $response->getBody()->write("<h4>Response</h4>");
+    $response->getBody()->write('<pre style="border-style: solid; border-width: 1px; display: inline-block; padding: 10px;"><code>{
+    "status": 1,
+    "cron_job": [
+        {
+            "id": 2,
+            "machine_name": "*",
+            "schedule": "* * * * *",
+            "command": "free -m",
+            "last_runned_command_id": 15
+        }
+    ]
+}</code></pre>');
+    $response->getBody()->write("</div>");
+    $response->getBody()->write("</div>");
+    $response->getBody()->write("</body>");
+
+    $response->getBody()->write("</html>");
     return $response;
 });
 
