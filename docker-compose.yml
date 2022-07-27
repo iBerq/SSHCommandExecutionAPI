@@ -10,6 +10,7 @@ services:
       - 3306
     ports:
       - "80:80"
+
   database:
     container_name: database
     image: mysql/mysql-server:latest
@@ -25,18 +26,62 @@ services:
       - ssh_cmd_exec_api_network
     ports:
       - 3306
+
   client:
     container_name: client
     tty: true
     build: ./client
+    environment: 
+      - USER client
+      - PASSWORD client
     networks:
       - ssh_cmd_exec_api_network
     expose:
       - 22
+
   client2:
     container_name: client2
     tty: true
     build: ./client
+    environment: 
+      - USER client2
+      - PASSWORD client2
+    networks:
+      - ssh_cmd_exec_api_network
+    expose:
+      - 22
+    
+  client3:
+    container_name: client3
+    tty: true
+    build: ./client
+    environment: 
+      - USER client3
+      - PASSWORD client3
+    networks:
+      - ssh_cmd_exec_api_network
+    expose:
+      - 22
+
+  client4:
+    container_name: client4
+    tty: true
+    build: ./client
+    environment: 
+      - USER client4
+      - PASSWORD client4
+    networks:
+      - ssh_cmd_exec_api_network
+    expose:
+      - 22
+
+  client5:
+    container_name: client5
+    tty: true
+    build: ./client
+    environment: 
+      - USER client5
+      - PASSWORD client5
     networks:
       - ssh_cmd_exec_api_network
     expose:
