@@ -88,9 +88,10 @@ ADD database.php /var/www/html/database.php
 ADD cron.php /var/www/html/cron.php
 ADD queue_publisher.php /var/www/html/queue_publisher.php
 ADD queue_consumer.php /var/www/html/queue_consumer.php
+ADD load_cron.php /var/www/html/load_cron.php
 
 #Enable mod_rewrite
 RUN a2enmod rewrite
 
 EXPOSE 22
-ENTRYPOINT service ssh restart && apache2ctl restart &&service cron restart && service rabbitmq-server restart && (php /var/www/html/queue_consumer.php >> /var/www/html/log.txt &) && bash
+ENTRYPOINT service ssh restart && apache2ctl restart && service cron restart && service rabbitmq-server restart && (php /var/www/html/queue_consumer.php >> /var/www/html/log.txt &) && (php /var/www/html/load_cron.php) && bash
