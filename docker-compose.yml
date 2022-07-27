@@ -30,10 +30,11 @@ services:
   client:
     container_name: client
     tty: true
-    build: ./client
-    environment: 
-      - USER client
-      - PASSWORD client
+    build: 
+      context: ./client
+      args:
+        USER: client
+        PASSWORD: client
     networks:
       - ssh_cmd_exec_api_network
     expose:
@@ -42,10 +43,11 @@ services:
   client2:
     container_name: client2
     tty: true
-    build: ./client
-    environment: 
-      - USER client2
-      - PASSWORD client2
+    build: 
+      context: ./client
+      args:
+        USER: client2
+        PASSWORD: client2
     networks:
       - ssh_cmd_exec_api_network
     expose:
@@ -54,10 +56,11 @@ services:
   client3:
     container_name: client3
     tty: true
-    build: ./client
-    environment: 
-      - USER client3
-      - PASSWORD client3
+    build: 
+      context: ./client
+      args:
+        USER: client3
+        PASSWORD: client3
     networks:
       - ssh_cmd_exec_api_network
     expose:
@@ -66,10 +69,11 @@ services:
   client4:
     container_name: client4
     tty: true
-    build: ./client
-    environment: 
-      - USER client4
-      - PASSWORD client4
+    build: 
+      context: ./client
+      args:
+        USER: client4
+        PASSWORD: client4
     networks:
       - ssh_cmd_exec_api_network
     expose:
@@ -78,10 +82,11 @@ services:
   client5:
     container_name: client5
     tty: true
-    build: ./client
-    environment: 
-      - USER client5
-      - PASSWORD client5
+    build: 
+      context: ./client
+      args:
+        USER: client5
+        PASSWORD: client5
     networks:
       - ssh_cmd_exec_api_network
     expose:

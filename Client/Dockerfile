@@ -1,6 +1,6 @@
 FROM ubuntu:latest
-ENV USER client
-ENV PASSWORD client
+ARG USER
+ARG PASSWORD
 RUN apt-get update
 RUN apt-get install -y netcat ssh iputils-ping
 RUN mkdir /var/run/sshd
