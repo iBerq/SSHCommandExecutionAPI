@@ -1,7 +1,7 @@
 <?php
-ini_set('display_errors', 1);
+/*ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+error_reporting(E_ALL);*/
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -177,7 +177,7 @@ $app->get('/help', function (Request $request, Response $response) {
     $response->getBody()->write("<div>");
     $response->getBody()->write("<h2 style='color: gray; border-bottom-style: solid; border-color: gray; border-width: 3px;'>/command</h2>");
     $response->getBody()->write("<div>");
-    $response->getBody()->write("<h3 style='color: gold; display: inline;'>POST</h3><h3 style='padding-left: 30px; display: inline;'>/command/exec/{machine_name}</h3>");
+    $response->getBody()->write("<h3 style='color: gold; display: inline;'>POST</h3><h3 style='padding-left: 30px; display: inline;'>/command/exec/{machine_id}</h3>");
     $response->getBody()->write("<p>Execute given command at specified machine.</p>");
     $response->getBody()->write("<h4>Body</h4>");
     $response->getBody()->write("
@@ -193,7 +193,7 @@ $app->get('/help', function (Request $request, Response $response) {
             <tr>
                 <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>command</td>
                 <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>date</td>
-                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>command that will run on the {machine_name}</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>command that will run on the {machine_id}</td>
             </tr>
         </tbody>
     </table>");
@@ -204,7 +204,7 @@ $app->get('/help', function (Request $request, Response $response) {
         {
             "id": 1,
             "date": "2022-07-27 10:31:54",
-            "machine_name": "client",
+            "machine_id": "1",
             "command": "date",
             "runned_by": "manual",
             "status": 1,
@@ -243,7 +243,7 @@ $app->get('/help', function (Request $request, Response $response) {
             {
                 "id": 2,
                 "date": "2022-07-27 10:32:08",
-                "machine_name": "client",
+                "machine_id": "1",
                 "command": "date",
                 "runned_by": "manual",
                 "status": 1,
@@ -255,7 +255,7 @@ $app->get('/help', function (Request $request, Response $response) {
             {
                 "id": 3,
                 "date": "2022-07-27 10:32:08",
-                "machine_name": "client2",
+                "machine_id": "2",
                 "command": "date",
                 "runned_by": "manual",
                 "status": 1,
@@ -267,7 +267,7 @@ $app->get('/help', function (Request $request, Response $response) {
             {
                 "id": 4,
                 "date": "2022-07-27 10:32:08",
-                "machine_name": "client3",
+                "machine_id": "3",
                 "command": "date",
                 "runned_by": "manual",
                 "status": 0,
@@ -279,17 +279,17 @@ $app->get('/help', function (Request $request, Response $response) {
 }</code></pre>');
     $response->getBody()->write("</div>");
     $response->getBody()->write("<div>");
-    $response->getBody()->write("<h3 style='color: green; display: inline;'>GET</h3><h3 style='padding-left: 30px; display: inline;'>/command/history/{machine_name}</h3>");
+    $response->getBody()->write("<h3 style='color: green; display: inline;'>GET</h3><h3 style='padding-left: 30px; display: inline;'>/command/history/{machine_id}</h3>");
     $response->getBody()->write("<p>Get command history of the specified machine.</p>");
     $response->getBody()->write("<h4>Response</h4>");
     $response->getBody()->write('<pre style="border-style: solid; border-width: 1px; display: inline-block; padding: 10px;"><code>{
     "status": 1,
-    "machine_name": "client",
+    "machine_id": "1",
     "history": [
         {
             "id": 1,
             "date": "2022-07-27 10:31:54",
-            "machine_name": "client",
+            "machine_id": "1",
             "command": "date",
             "runned_by": "manual",
             "status": 1,
@@ -299,7 +299,7 @@ $app->get('/help', function (Request $request, Response $response) {
         {
             "id": 2,
             "date": "2022-07-27 10:32:08",
-            "machine_name": "client",
+            "machine_id": "1",
             "command": "date",
             "runned_by": "manual",
             "status": 1,
