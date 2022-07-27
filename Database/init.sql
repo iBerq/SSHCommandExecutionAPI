@@ -1,10 +1,10 @@
 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password by 'root123@';
 GRANT ALL PRIVILEGES ON *.* TO 'server'@'%';
 FLUSH PRIVILEGES;
-CREATE DATABASE IF NOT EXISTS ssh_cmd_exec_app;
-USE ssh_cmd_exec_app;
-CREATE TABLE IF NOT EXISTS `command_history` (`id` INT NOT NULL AUTO_INCREMENT, `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, `machine_name` VARCHAR(255) CHARACTER SET utf8 NOT NULL,	`command` VARCHAR(255) CHARACTER SET utf8 NOT NULL, `runned_by` VARCHAR(255) CHARACTER SET utf8 NOT NULL, `status` BOOLEAN NOT NULL, `output` TEXT CHARACTER SET utf8 DEFAULT NULL COMMENT 'Output of the executed command.', `error` TEXT CHARACTER SET utf8 DEFAULT NULL COMMENT 'Error message of the executed command.', PRIMARY KEY (`id`));
-CREATE TABLE IF NOT EXISTS `machines` (`machine_name` VARCHAR(255) CHARACTER SET utf8 NOT NULL, PRIMARY KEY (`machine_name`));
-CREATE TABLE IF NOT EXISTS `cron_jobs` (`id` INT NOT NULL AUTO_INCREMENT, `machine_name` varchar(255) CHARACTER SET utf8 NOT NULL, `schedule` varchar(255) CHARACTER SET utf8 NOT NULL, `command` varchar(255) CHARACTER SET utf8 NOT NULL, `last_runned_command_id` INT DEFAULT NULL COMMENT 'Last runned commands id from command_history.', PRIMARY KEY (`id`));
+CREATE DATABASE IF NOT EXISTS ssh_cmd_exec_api;
+USE ssh_cmd_exec_api;
+CREATE TABLE IF NOT EXISTS `command_history` (`id` INT NOT NULL AUTO_INCREMENT, `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, `machine_id` VARCHAR(255) CHARACTER SET utf8 NOT NULL,	`command` VARCHAR(255) CHARACTER SET utf8 NOT NULL, `runned_by` VARCHAR(255) CHARACTER SET utf8 NOT NULL, `status` BOOLEAN NOT NULL, `output` TEXT CHARACTER SET utf8 DEFAULT NULL COMMENT 'Output of the executed command.', `error` TEXT CHARACTER SET utf8 DEFAULT NULL COMMENT 'Error message of the executed command.', PRIMARY KEY (`id`));
+CREATE TABLE IF NOT EXISTS `machines` (`id` INT NOT NULL AUTO_INCREMENT, `machine_name` VARCHAR(255) CHARACTER SET utf8 NOT NULL, `host` VARCHAR(255) CHARACTER SET utf8 NOT NULL, `username` VARCHAR(255) CHARACTER SET utf8 NOT NULL, `password` VARCHAR(255) CHARACTER SET utf8 NOT NULL, PRIMARY KEY (`id`));
+CREATE TABLE IF NOT EXISTS `cron_jobs` (`id` INT NOT NULL AUTO_INCREMENT, `machine_id` varchar(255) CHARACTER SET utf8 NOT NULL, `schedule` varchar(255) CHARACTER SET utf8 NOT NULL, `command` varchar(255) CHARACTER SET utf8 NOT NULL, `last_runned_command_id` INT DEFAULT NULL COMMENT 'Last runned commands id from command_history.', PRIMARY KEY (`id`));
 CREATE TABLE IF NOT EXISTS `jobs` (`id` INT NOT NULL AUTO_INCREMENT, `status` BOOLEAN NOT NULL, PRIMARY KEY (`id`));
 CREATE TABLE IF NOT EXISTS `job_command` (`job_id` INT NOT NULL, `command_id` INT NOT NULL, PRIMARY KEY (`job_id`, `command_id`));

@@ -49,7 +49,6 @@ $app->get('/help', function (Request $request, Response $response) {
     $response->getBody()->write("<html>");
 
     $response->getBody()->write("<head>");
-    //$response->getBody()->write("<meta http-equiv='refresh' content='0;URL='https://covidtracking.com/data/api'' />");
     $response->getBody()->write("<title>SSH Command Execution API Help Page</title>");
     $response->getBody()->write("</head>");
 
@@ -66,13 +65,25 @@ $app->get('/help', function (Request $request, Response $response) {
     "status": 1,
     "machines": [
         {
-            "machine_name": "client"
+            "id": 6,
+            "machine_name": "test",
+            "host": "client",
+            "username": "client",
+            "password": "123456"
         },
         {
-            "machine_name": "client2"
+            "id": 7,
+            "machine_name": "test2",
+            "host": "client2",
+            "username": "client2",
+            "password": "123456"
         },
         {
-            "machine_name": "client3"
+            "id": 8,
+            "machine_name": "test3",
+            "host": "client3",
+            "username": "client3",
+            "password": "123456"
         }
     ]
 }</code></pre>');
@@ -93,8 +104,23 @@ $app->get('/help', function (Request $request, Response $response) {
         <tbody>
             <tr>
                 <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>machine_name</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>test</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>custom name of the machine</td>
+            </tr>
+            <tr>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>host</td>
                 <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>client</td>
-                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>host name of the machine</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>host name or ip of the machine</td>
+            </tr>
+            <tr>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>username</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>client</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>username of the host machine</td>
+            </tr>
+            <tr>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>machine_name</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>123456</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>password of the host machine</td>
             </tr>
         </tbody>
     </table>");
@@ -103,7 +129,11 @@ $app->get('/help', function (Request $request, Response $response) {
     "status": 1,
     "machine": [
         {
-            "machine_name": "client"
+            "id": 3,
+            "machine_name": "test",
+            "host": "client",
+            "username": "client",
+            "password": "123456"
         }
     ]
 }</code></pre>');
@@ -123,9 +153,9 @@ $app->get('/help', function (Request $request, Response $response) {
         </thead>
         <tbody>
             <tr>
-                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>machine_name</td>
-                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>client</td>
-                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>host name of the machine</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>id</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>3</td>
+                <td style='border: 1px solid black; border-collapse: collapse; padding: 10px;'>unique identifier of the machine</td>
             </tr>
         </tbody>
     </table>");
@@ -134,7 +164,11 @@ $app->get('/help', function (Request $request, Response $response) {
     "status": 1,
     "machine": [
         {
-            "machine_name": "client"
+            "id": 3,
+            "machine_name": "test",
+            "host": "client",
+            "username": "client",
+            "password": "123456"
         }
     ]
 }</code></pre>');
@@ -520,27 +554,27 @@ $app->post('/command/exec', function (Request $request, Response $response, $arg
     return $response->withHeader('Content-Type', 'application/json');
 });
 
-$app->post('/command/exec/{machine_name}', function (Request $request, Response $response, $args) {
+$app->post('/command/exec/{machine_id}', function (Request $request, Response $response, $args) {
     $params = (array)$request->getParsedBody();
-    $payload = array("status" => 0, "machine_name" => $args["machine_name"]);
+    $payload = array("status" => 0, "machine_id" => $args["machine_id"]);
     if (!isset($params["command"])) {
         $payload["error"] = "No command is given.";
         $response->getBody()->write(json_encode($payload));
         return $response->withHeader('Content-Type', 'application/json');
     }
 
-    if (!select_where(array("*"), "machines", array("machine_name" => $args["machine_name"]))) {
+    if (!select_where(array("*"), "machines", array("id" => $args["machine_id"]))) {
         $payload["command"] = $params["command"];
         $payload["error"] = "Machine not found.";
         $response->getBody()->write(json_encode($payload));
         return $response->withHeader('Content-Type', 'application/json');
     }
-    unset($payload["machine_name"]);
+    unset($payload["machine_id"]);
 
     $job_id = insert("jobs", array("status" => 0));
     $params["job_id"] = $job_id;
 
-    if (publish_job($params, $args["machine_name"])) {
+    if (publish_job($params, $args["machine_id"])) {
         while (true) {
             $job = select_where(array("*"), "jobs", array("id" => $job_id));
             $job = get_object_vars($job[0]);
@@ -569,21 +603,21 @@ $app->get('/command/history', function (Request $request, Response $response, $a
     $machine_result_array = array();
     foreach ($machines as $temp_machine) {
         $machine = get_object_vars($temp_machine);
-        $machine_result_array[$machine["machine_name"]] = select_where(array("*"), "command_history", array("machine_name" => $machine["machine_name"]));
+        $machine_result_array[$machine["id"]] = select_where(array("*"), "command_history", array("machine_id" => $machine["id"]));
     }
     $payload["history"] = $machine_result_array;
     $response->getBody()->write(json_encode($payload));
     return $response->withHeader('Content-Type', 'application/json');
 });
 
-$app->get('/command/history/{machine_name}', function (Request $request, Response $response, $args) {
-    $payload = array("status" => 0, "machine_name" => $args["machine_name"]);
+$app->get('/command/history/{machine_id}', function (Request $request, Response $response, $args) {
+    $payload = array("status" => 0, "machine_id" => $args["machine_id"]);
 
-    if (!select_where(array("*"), "machines", array("machine_name" => $args["machine_name"])))
+    if (!select_where(array("*"), "machines", array("id" => $args["machine_id"])))
         $payload["error"] = "Machine not found.";
     else {
         $payload["status"] = 1;
-        $payload["history"] = select_where(array("*"), "command_history", array("machine_name" => $args["machine_name"]));
+        $payload["history"] = select_where(array("*"), "command_history", array("machine_id" => $args["machine_id"]));
     }
 
     $response->getBody()->write(json_encode($payload));
@@ -605,7 +639,25 @@ $app->post('/machine/add', function (Request $request, Response $response, $args
         return $response->withHeader('Content-Type', 'application/json');
     }
 
-    if ($payload["machine"] = select_where(array("*"), "machines", array("machine_name" => $params["machine_name"]))) {
+    if (!isset($params["host"])) {
+        $payload["error"] = "No host is given.";
+        $response->getBody()->write(json_encode($payload));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    if (!isset($params["username"])) {
+        $payload["error"] = "No username is given.";
+        $response->getBody()->write(json_encode($payload));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    if (!isset($params["password"])) {
+        $payload["error"] = "No password is given.";
+        $response->getBody()->write(json_encode($payload));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    if ($payload["machine"] = select_where(array("*"), "machines", array("host" => $params["host"], "username" => $params["username"], "password" => $params["password"]))) {
         $payload["error"] = "Machine already exists.";
         $response->getBody()->write(json_encode($payload));
         return $response->withHeader('Content-Type', 'application/json');
@@ -614,10 +666,13 @@ $app->post('/machine/add', function (Request $request, Response $response, $args
 
     $query_params = array(
         "machine_name" => $params["machine_name"],
+        "host" => $params["host"],
+        "username" => $params["username"],
+        "password" => $params["password"]
     );
 
-    insert("machines", $query_params);
-    $payload["machine"] = select_where(array("*"), "machines", array("machine_name" => $params["machine_name"]));
+    $machine_id = insert("machines", $query_params);
+    $payload["machine"] = select_where(array("*"), "machines", array("id" => $machine_id));
     $payload["status"] = 1;
 
     $response->getBody()->write(json_encode($payload));
@@ -641,22 +696,22 @@ $app->get('/machine/list', function (Request $request, Response $response, $args
 $app->post('/machine/delete', function (Request $request, Response $response, $args) {
     $params = (array)$request->getParsedBody();
     $payload = array("status" => 0);
-    if (!isset($params["machine_name"])) {
-        $payload["error"] = "No machine name is given.";
+    if (!isset($params["id"])) {
+        $payload["error"] = "No machine id is given.";
         $response->getBody()->write(json_encode($payload));
         return $response->withHeader('Content-Type', 'application/json');
     }
 
-    if (!($payload["machine"] = select_where(array("*"), "machines", array("machine_name" => $params["machine_name"])))) {
+    if (!($payload["machine"] = select_where(array("*"), "machines", array("id" => $params["id"])))) {
         unset($payload["machine"]);
-        $payload["machine"] = $params["machine_name"];
+        $payload["machine"] = $params["id"];
         $payload["error"] = "Machine doesn't exists.";
         $response->getBody()->write(json_encode($payload));
         return $response->withHeader('Content-Type', 'application/json');
     }
 
     $query_params = array(
-        "machine_name" => $params["machine_name"],
+        "id" => $params["id"],
     );
 
     delete("machines", $query_params);
@@ -687,7 +742,7 @@ $app->post('/cron/add', function (Request $request, Response $response, $args) {
         return $response->withHeader('Content-Type', 'application/json');
     }
 
-    if ($payload["cron_job"] = select_where(array("*"), "cron_jobs", array("schedule" => $params["schedule"], "command" => $params["command"], "machine_name" => "*"))) {
+    if ($payload["cron_job"] = select_where(array("*"), "cron_jobs", array("schedule" => $params["schedule"], "command" => $params["command"], "machine_id" => "*"))) {
         $payload["error"] = "Cron already exists.";
         $response->getBody()->write(json_encode($payload));
         return $response->withHeader('Content-Type', 'application/json');
@@ -697,7 +752,7 @@ $app->post('/cron/add', function (Request $request, Response $response, $args) {
     $query_params = array(
         "schedule" => $params["schedule"],
         "command" => $params["command"],
-        "machine_name" => "*",
+        "machine_id" => "*",
     );
 
     $cron_id = insert("cron_jobs", $query_params);
@@ -713,7 +768,7 @@ $app->post('/cron/add', function (Request $request, Response $response, $args) {
     return $response->withHeader('Content-Type', 'application/json');
 });
 
-$app->post('/cron/add/{machine_name}', function (Request $request, Response $response, $args) {
+$app->post('/cron/add/{machine_id}', function (Request $request, Response $response, $args) {
     $params = (array)$request->getParsedBody();
     $payload = array("status" => 0);
     if (!isset($params["command"])) {
@@ -728,7 +783,7 @@ $app->post('/cron/add/{machine_name}', function (Request $request, Response $res
         return $response->withHeader('Content-Type', 'application/json');
     }
 
-    if (!select_where(array("*"), "machines", array("machine_name" => $args["machine_name"]))) {
+    if (!select_where(array("*"), "machines", array("id" => $args["machine_id"]))) {
         $payload["schedule"] = $params["schedule"];
         $payload["command"] = $params["command"];
         $payload["error"] = "Machine not found.";
@@ -736,7 +791,7 @@ $app->post('/cron/add/{machine_name}', function (Request $request, Response $res
         return $response->withHeader('Content-Type', 'application/json');
     }
 
-    if ($payload["cron_job"] = select_where(array("*"), "cron_jobs", array("schedule" => $params["schedule"], "command" => $params["command"], "machine_name" => $args["machine_name"]))) {
+    if ($payload["cron_job"] = select_where(array("*"), "cron_jobs", array("schedule" => $params["schedule"], "command" => $params["command"], "machine_id" => $args["machine_id"]))) {
         $payload["error"] = "Cron already exists.";
         $response->getBody()->write(json_encode($payload));
         return $response->withHeader('Content-Type', 'application/json');
@@ -746,7 +801,7 @@ $app->post('/cron/add/{machine_name}', function (Request $request, Response $res
     $query_params = array(
         "schedule" => $params["schedule"],
         "command" => $params["command"],
-        "machine_name" => $args["machine_name"],
+        "machine_id" => $args["machine_id"],
     );
 
     $cron_id = insert("cron_jobs", $query_params);

@@ -50,11 +50,11 @@ function process_message($message)
 
     $messageBody = json_decode($message->body, true);
 
-    if ($messageBody["machine_name"] == "*")
+    if ($messageBody["machine_id"] == "*")
         command_exec_all($messageBody["params"]);
     else {
 
-        command_exec_machine($messageBody["params"], $messageBody["machine_name"]);
+        command_exec_machine($messageBody["params"], $messageBody["machine_id"]);
     }
 
     $message->ack();
@@ -68,13 +68,13 @@ function process_message($message)
 function command_exec_all($params)
 {
     $params = json_decode($params, true);
-    $machines = select(array("machine_name"), "machines");
+    $machines = select(array("*"), "machines");
     foreach ($machines as $temp_machine) {
         $machine = get_object_vars($temp_machine);
-        $machine_result = array("status" => 0, "machine_name" => $machine["machine_name"]);
+        $machine_result = array("status" => 0, "machine_id" => $machine["id"]);
         $output = "";
         $error = "";
-        if (!executeCmdOnSSH($machine["machine_name"], $params["command"], $output, $error))
+        if (!executeCmdOnSSH($machine["host"], $machine["username"], $machine["password"], $params["command"], $output, $error))
             $machine_result["error"] = $error;
         else {
             if ($error == "")
@@ -85,7 +85,7 @@ function command_exec_all($params)
         }
 
         $query_params = array(
-            "machine_name" => $machine_result["machine_name"],
+            "machine_id" => $machine_result["machine_id"],
             "command" => $params["command"],
             "runned_by" => (isset($params["runned_by"]) && $params["runned_by"] == "cron") ? "cron" : "manual",
             "status" => $machine_result["status"],
@@ -99,13 +99,16 @@ function command_exec_all($params)
     update("jobs", array("status" => 1), array("id" => $params["job_id"]));
 }
 
-function command_exec_machine($params, $machine_name)
+function command_exec_machine($params, $machine_id)
 {
     $params = json_decode($params, true);
 
+    $machine = select(array("*"), "machines", array("id" => $machine_id));
+    $machine = get_object_vars($machine[0]);
+
     $output = "";
     $error = "";
-    if (!executeCmdOnSSH($machine_name, $params["command"], $output, $error))
+    if (!executeCmdOnSSH($machine["host"], $machine["username"], $machine["password"], $params["command"], $output, $error))
         $command["error"] = $error;
     else {
         if ($error == "")
@@ -116,7 +119,7 @@ function command_exec_machine($params, $machine_name)
     }
 
     $query_params = array(
-        "machine_name" => $machine_name,
+        "machine_id" => $machine_id,
         "command" => $params["command"],
         "runned_by" => (isset($params["runned_by"]) && $params["runned_by"] == "cron") ? "cron" : "manual",
         "status" => $payload["status"],

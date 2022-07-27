@@ -4,7 +4,7 @@ services:
     tty: true
     build: ./server
     networks:
-      - ssh_cmd_exec_app_network
+      - ssh_cmd_exec_api_network
     expose:
       - 22
       - 3306
@@ -15,14 +15,14 @@ services:
     image: mysql/mysql-server:latest
     environment:
       - MYSQL_ROOT_PASSWORD=root123@
-      - MYSQL_DATABASE=ssh_cmd_exec_app
+      - MYSQL_DATABASE=ssh_cmd_exec_api
       - MYSQL_USER=server
       - MYSQL_PASSWORD=server123@
     volumes:
-      - ssh_cmd_exec_app_database:/var/lib/mysql
+      - ssh_cmd_exec_api_database:/var/lib/mysql
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
-      - ssh_cmd_exec_app_network
+      - ssh_cmd_exec_api_network
     ports:
       - 3306
   client:
@@ -30,7 +30,7 @@ services:
     tty: true
     build: ./client
     networks:
-      - ssh_cmd_exec_app_network
+      - ssh_cmd_exec_api_network
     expose:
       - 22
   client2:
@@ -38,13 +38,13 @@ services:
     tty: true
     build: ./client
     networks:
-      - ssh_cmd_exec_app_network
+      - ssh_cmd_exec_api_network
     expose:
       - 22
 
 networks:
-  ssh_cmd_exec_app_network:
+  ssh_cmd_exec_api_network:
     driver: bridge
 
 volumes:
-  ssh_cmd_exec_app_database:
+  ssh_cmd_exec_api_database:

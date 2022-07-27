@@ -11,8 +11,8 @@ $values = array(
 );
 
 $post_url = "http://localhost/command/exec";
-if ($cron_job["machine_name"] != "*")
-    $post_url .= "/" . $cron_job["machine_name"];
+if ($cron_job["machine_id"] != "*")
+    $post_url .= "/" . $cron_job["machine_id"];
 
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $post_url);
@@ -23,4 +23,4 @@ curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
 curl_setopt($ch, CURLOPT_TIMEOUT, 20);
 $resultJSON = @curl_exec($ch);
 $result = json_decode($resultJSON, true);
-update("cron_jobs", ["last_runned_command_id" => ($cron_job["machine_name"] == "*") ? $result["result"][0][0]["id"] : $result["result"][0]["id"]], ["id" => $cron_id]);
+update("cron_jobs", ["last_runned_command_id" => ($cron_job["machine_id"] == "*") ? $result["result"][0][0]["id"] : $result["result"][0]["id"]], ["id" => $cron_id]);

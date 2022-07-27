@@ -6,7 +6,7 @@ use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Exchange\AMQPExchangeType;
 use PhpAmqpLib\Message\AMQPMessage;
 
-function publish_job($params, $machine_name)
+function publish_job($params, $machine_id)
 {
     $status = false;
     $exchange = 'router';
@@ -42,7 +42,7 @@ function publish_job($params, $machine_name)
 
     $channel->queue_bind($queue, $exchange);
 
-    $messageBody = array("params" => json_encode($params), "machine_name" => $machine_name);
+    $messageBody = array("params" => json_encode($params), "machine_id" => $machine_id);
     $message = new AMQPMessage(json_encode($messageBody), array('content_type' => 'application/json', 'delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT));
     $channel->basic_publish($message, $exchange);
 

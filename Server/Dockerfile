@@ -24,7 +24,7 @@ RUN useradd --create-home --shell /bin/bash --groups sudo $USER
 RUN echo "$USER:$PASSWORD" | chpasswd
 
 #Setup the apache server
-RUN service apache2 start
+RUN apache2ctl start
 RUN echo "ServerName localhost" | tee /etc/apache2/conf-available/servername.conf
 RUN a2enconf servername
 RUN chown -R www-data:www-data /var/www/html
@@ -59,7 +59,6 @@ RUN echo "y" | apt-get install php-bcmath
 
 #Install amqplib
 RUN composer require php-amqplib/php-amqplib:">=3.1"
-
 RUN composer update
 
 #Delete file
@@ -94,4 +93,4 @@ ADD queue_consumer.php /var/www/html/queue_consumer.php
 RUN a2enmod rewrite
 
 EXPOSE 22
-ENTRYPOINT service ssh restart && service apache2 restart && service cron restart && service rabbitmq-server restart && (php /var/www/html/queue_consumer.php >> /var/www/html/log.txt &) && bash
+ENTRYPOINT service ssh restart && apache2ctl restart &&service cron restart && service rabbitmq-server restart && (php /var/www/html/queue_consumer.php >> /var/www/html/log.txt &) && bash

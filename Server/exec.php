@@ -1,10 +1,7 @@
 <?php
-function executeCmdOnSSH($machine, $command, &$output = null, &$error = null)
+function executeCmdOnSSH($host, $username, $password, $command, &$output = null, &$error = null)
 {
   $result = true;
-  $host = $machine;
-  $username = "client";
-  $password = "123456";
 
   if (!($connection = ssh2_connect($host, 22))) {
     $error = "Can't connect to server.";
